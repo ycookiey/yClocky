@@ -31,6 +31,7 @@
         <!-- Toggles -->
         <CheckBox x:Name="ShowDateCheck" Content="Show Date" Margin="0,0,0,5" Checked="Setting_Changed" Unchecked="Setting_Changed"/>
         <CheckBox x:Name="TopmostCheck" Content="Always on Top" Margin="0,0,0,5" Checked="Setting_Changed" Unchecked="Setting_Changed"/>
+        <CheckBox x:Name="StartupCheck" Content="Run on Startup" Margin="0,0,0,5" Checked="Setting_Changed" Unchecked="Setting_Changed"/>
         <CheckBox x:Name="GhostModeCheck" Content="Ghost Mode (Fade on Hover)" Margin="0,0,0,5" Checked="Setting_Changed" Unchecked="Setting_Changed"/>
         <CheckBox x:Name="CaptureCheck" Content="Exclude from Capture" Margin="0,0,0,5" Checked="Setting_Changed" Unchecked="Setting_Changed"/>
         <CheckBox x:Name="MultiInstanceCheck" Content="Allow Multiple Instances" Margin="0,0,0,10" Checked="Setting_Changed" Unchecked="Setting_Changed"/>

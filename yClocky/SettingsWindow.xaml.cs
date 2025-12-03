@@ -31,6 +31,7 @@ public partial class SettingsWindow : Window
         OpacitySlider.Value = settings.Opacity;
         ShowDateCheck.IsChecked = settings.ShowDate;
         TopmostCheck.IsChecked = settings.Topmost;
+        StartupCheck.IsChecked = settings.RunOnStartup;
         GhostModeCheck.IsChecked = settings.GhostMode;
         CaptureCheck.IsChecked = settings.ExcludeFromCapture;
         MultiInstanceCheck.IsChecked = settings.AllowMultipleInstances;
@@ -50,6 +51,7 @@ public partial class SettingsWindow : Window
         settings.Opacity = OpacitySlider.Value;
         settings.ShowDate = ShowDateCheck.IsChecked ?? true;
         settings.Topmost = TopmostCheck.IsChecked ?? true;
+        settings.RunOnStartup = StartupCheck.IsChecked ?? false;
         settings.GhostMode = GhostModeCheck.IsChecked ?? false;
         settings.ExcludeFromCapture = CaptureCheck.IsChecked ?? false;
         settings.AllowMultipleInstances = MultiInstanceCheck.IsChecked ?? false;

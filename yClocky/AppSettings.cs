@@ -12,6 +12,7 @@ public class AppSettings
     public double Opacity { get; set; } = 1.0;
     public bool ShowDate { get; set; } = true;
     public bool Topmost { get; set; } = true;
+    public bool RunOnStartup { get; set; } = false;
     public bool AllowMultipleInstances { get; set; } = false;
     public bool GhostMode { get; set; } = false;
     public bool ExcludeFromCapture { get; set; } = false;
@@ -67,10 +68,38 @@ public static class SettingsManager
             File.WriteAllText(SettingsFile, json);
             
             SettingsChanged?.Invoke();
+            
+            SetStartup(Current.RunOnStartup);
         }
         catch
         {
             // Handle save errors (log or ignore)
         }
+    }
+
+    private static void SetStartup(bool enable)
+    {
+        try
+        {
+            const string runKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(runKey, true);
+            if (key == null) return;
+
+            string appName = "yClocky";
+            
+            if (enable)
+            {
+                string? exePath = Environment.ProcessPath;
+                if (exePath != null)
+                {
+                    key.SetValue(appName, exePath);
+                }
+            }
+            else
+            {
+                key.DeleteValue(appName, false);
+            }
+        }
+        catch { }
     }
 }
