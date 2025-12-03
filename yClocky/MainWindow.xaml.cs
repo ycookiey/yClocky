@@ -13,6 +13,30 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace yClocky;
+
+/// <summary>
+/// Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow : Window
+{
+    private DispatcherTimer _timer;
+    private SettingsWindow? _settingsWindow;
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        
+        SettingsManager.Load();
+        SettingsManager.SettingsChanged += ApplySettings;
+        
+        InitializeClock();
+        ApplySettings();
+        
+        // Restore position
+        this.Left = SettingsManager.Current.Left;
+        this.Top = SettingsManager.Current.Top;
+    }
+
     private void InitializeClock()
     {
         _timer = new DispatcherTimer();
