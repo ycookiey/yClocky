@@ -53,3 +53,10 @@ dotnet run
     *   Ghost Mode: マウス接近時の自動フェードアウト
     *   Exclude from Capture: 画面キャプチャからの除外
     *   Allow Multiple Instances: 多重起動の許可
+
+## リリース手順 (開発者向け)
+
+
+```powershell
+gh bump
+```

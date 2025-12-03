@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # "v1.0.0" などのタグがプッシュされた時に実行
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish
+        run: |
+          dotnet publish yClocky/yClocky.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ./publish
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./publish/yClocky.exe
+          generate_release_notes: true
