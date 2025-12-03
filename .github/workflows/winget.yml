@@ -1,0 +1,16 @@
+name: Winget Submission
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  winget:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Submit to Winget
+        uses: vedantmgoyal2009/winget-releaser@v2
+        with:
+          identifier: ycookiey.yClocky
+          installers-regex: '\.exe$'
+          token: ${{ secrets.WINGET_TOKEN }}
