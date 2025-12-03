@@ -52,6 +52,8 @@ public static class SettingsManager
         }
     }
 
+    public static event Action? SettingsChanged;
+
     public static void Save()
     {
         try
@@ -63,6 +65,8 @@ public static class SettingsManager
 
             var json = JsonSerializer.Serialize(Current, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFile, json);
+            
+            SettingsChanged?.Invoke();
         }
         catch
         {
