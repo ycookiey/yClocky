@@ -48,8 +48,15 @@ public partial class MainWindow : Window
 
     private void Timer_Tick(object? sender, EventArgs e)
     {
-        UpdateClock();
-        UpdateGhostMode();
+        try
+        {
+            UpdateClock();
+            UpdateGhostMode();
+        }
+        catch
+        {
+            // Prevent crash from timer tick
+        }
     }
 
     private void UpdateClock()
@@ -196,6 +203,20 @@ public partial class MainWindow : Window
         base.OnSourceInitialized(e);
         SetWindowStyle();
         ApplySettings(); // Apply initial settings (including affinity)
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        
+        if (_timer != null)
+        {
+            _timer.Stop();
+            _timer.Tick -= Timer_Tick;
+        }
+        
+        SettingsManager.SettingsChanged -= ApplySettings;
+        Application.Current.Shutdown();
     }
 
     private void SetWindowStyle()
