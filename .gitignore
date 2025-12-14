@@ -4,3 +4,11 @@ obj/
 .agent/
 *.user
 *.suo
+
+# Temporary files
+winget-pkgs-temp/
+implementation_plan.md
+winget_pr_update_summary.md
+
+# Downloaded executables
+*_downloaded.exe

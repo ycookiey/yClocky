@@ -51,6 +51,7 @@ public partial class MainWindow : Window
         try
         {
             UpdateClock();
+            UpdateClickThrough();
             UpdateGhostMode();
         }
         catch
@@ -66,10 +67,27 @@ public partial class MainWindow : Window
         DateText.Text = now.ToString("yyyy/MM/dd (ddd)");
     }
 
+    private void UpdateClickThrough()
+    {
+        var helper = new WindowInteropHelper(this);
+        int exStyle = (int)GetWindowLong(helper.Handle, GWL_EXSTYLE);
+
+        if (Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            // Ctrl押下中はクリックを受け付ける
+            SetWindowLong(helper.Handle, GWL_EXSTYLE, exStyle & ~WS_EX_TRANSPARENT);
+        }
+        else
+        {
+            // 通常時はクリックを貫通
+            SetWindowLong(helper.Handle, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT);
+        }
+    }
+
     private void UpdateGhostMode()
     {
         if (!SettingsManager.Current.GhostMode) return;
-        
+
         // If Ctrl is pressed, don't hide (allow interaction)
         if (Keyboard.Modifiers == ModifierKeys.Control)
         {
@@ -80,31 +98,48 @@ public partial class MainWindow : Window
         POINT p;
         if (GetCursorPos(out p))
         {
-            // Simple distance check from center
-            var centerX = this.Left + this.Width / 2;
-            var centerY = this.Top + this.Height / 2;
-            
-            var dx = p.X - centerX;
-            var dy = p.Y - centerY;
-            var dist = Math.Sqrt(dx*dx + dy*dy);
-            
-            // Thresholds
-            double hideDist = 150; // Start fading
-            double fullHideDist = 50; // Fully hidden
-            
-            if (dist < fullHideDist)
+            // Check if cursor is inside window bounds
+            bool isInside = p.X >= this.Left &&
+                           p.X <= this.Left + this.Width &&
+                           p.Y >= this.Top &&
+                           p.Y <= this.Top + this.Height;
+
+            if (isInside)
             {
+                // Inside window: fully transparent
                 this.Opacity = 0;
-            }
-            else if (dist < hideDist)
-            {
-                // Linear fade
-                var factor = (dist - fullHideDist) / (hideDist - fullHideDist);
-                this.Opacity = SettingsManager.Current.Opacity * factor;
             }
             else
             {
-                this.Opacity = SettingsManager.Current.Opacity;
+                // Outside window: calculate distance from window edge
+                double dx = 0;
+                double dy = 0;
+
+                if (p.X < this.Left)
+                    dx = this.Left - p.X;
+                else if (p.X > this.Left + this.Width)
+                    dx = p.X - (this.Left + this.Width);
+
+                if (p.Y < this.Top)
+                    dy = this.Top - p.Y;
+                else if (p.Y > this.Top + this.Height)
+                    dy = p.Y - (this.Top + this.Height);
+
+                double distance = Math.Sqrt(dx * dx + dy * dy);
+
+                // Fade distance threshold
+                double fadeDistance = 100;
+
+                if (distance < fadeDistance)
+                {
+                    // Gradual fade based on distance from window edge
+                    double factor = distance / fadeDistance;
+                    this.Opacity = SettingsManager.Current.Opacity * factor;
+                }
+                else
+                {
+                    this.Opacity = SettingsManager.Current.Opacity;
+                }
             }
         }
     }
@@ -228,6 +263,7 @@ public partial class MainWindow : Window
 
     private const int GWL_EXSTYLE = -20;
     private const int WS_EX_TOOLWINDOW = 0x00000080;
+    private const int WS_EX_TRANSPARENT = 0x00000020;
     private const uint WDA_NONE = 0x00000000;
     private const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 
