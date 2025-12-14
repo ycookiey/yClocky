@@ -14,7 +14,16 @@
             
             <!-- Font -->
             <TextBlock Text="Font Family"/>
-            <ComboBox x:Name="FontCombo" Margin="0,0,0,10" SelectionChanged="FontCombo_SelectionChanged">
+            <ComboBox x:Name="FontCombo" Margin="0,0,0,10"
+                      SelectionChanged="FontCombo_SelectionChanged"
+                      DropDownOpened="FontCombo_DropDownOpened"
+                      DropDownClosed="FontCombo_DropDownClosed">
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="ComboBoxItem">
+                        <EventSetter Event="MouseEnter" Handler="ComboBoxItem_MouseEnter"/>
+                        <EventSetter Event="PreviewMouseMove" Handler="ComboBoxItem_PreviewMouseMove"/>
+                    </Style>
+                </ComboBox.ItemContainerStyle>
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Source}" FontFamily="{Binding}" FontSize="14"/>

@@ -1,0 +1,41 @@
+<Window x:Class="yClocky.FontPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Font Preview" Height="250" Width="400"
+        ResizeMode="NoResize" WindowStartupLocation="Manual"
+        ShowInTaskbar="False">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Current Font Section -->
+        <TextBlock Grid.Row="0" FontWeight="Bold" Margin="0,0,0,5">
+            <Run Text="Current Font ("/>
+            <Run x:Name="CurrentFontNameRun" Text="Segoe UI"/>
+            <Run Text=")"/>
+        </TextBlock>
+        <Border Grid.Row="1" BorderBrush="#CCCCCC" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+            <StackPanel x:Name="CurrentPreview" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock x:Name="CurrentTimeText" Text="00:00:00" FontSize="24" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="CurrentDateText" Text="2025-12-14" FontSize="14" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Preview Font Section -->
+        <TextBlock Grid.Row="2" FontWeight="Bold" Margin="0,0,0,5">
+            <Run Text="Preview ("/>
+            <Run x:Name="PreviewFontNameRun" Text="Segoe UI"/>
+            <Run Text=")"/>
+        </TextBlock>
+        <Border Grid.Row="3" BorderBrush="#CCCCCC" BorderThickness="1" Padding="10">
+            <StackPanel x:Name="PreviewPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock x:Name="PreviewTimeText" Text="00:00:00" FontSize="24" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="PreviewDateText" Text="2025-12-14" FontSize="14" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
