@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -20,11 +21,17 @@ public partial class SettingsWindow : Window
         var settings = SettingsManager.Current;
 
         // Load Fonts
-        foreach (var font in Fonts.SystemFontFamilies)
+        foreach (var font in Fonts.SystemFontFamilies.OrderBy(f => f.Source))
         {
-            FontCombo.Items.Add(font.Source);
+            FontCombo.Items.Add(font);
         }
-        FontCombo.SelectedItem = settings.FontFamily;
+
+        // Select the current font
+        var currentFont = Fonts.SystemFontFamilies.FirstOrDefault(f => f.Source == settings.FontFamily);
+        if (currentFont != null)
+        {
+            FontCombo.SelectedItem = currentFont;
+        }
 
         TextColorBox.Text = settings.TextColor;
         BgColorBox.Text = settings.BackgroundColor;
@@ -42,9 +49,9 @@ public partial class SettingsWindow : Window
         if (!_isInitialized) return;
 
         var settings = SettingsManager.Current;
-        
-        if (FontCombo.SelectedItem != null)
-            settings.FontFamily = FontCombo.SelectedItem.ToString();
+
+        if (FontCombo.SelectedItem is FontFamily selectedFont)
+            settings.FontFamily = selectedFont.Source;
         
         settings.TextColor = TextColorBox.Text;
         settings.BackgroundColor = BgColorBox.Text;
