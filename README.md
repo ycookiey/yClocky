@@ -56,7 +56,47 @@ dotnet run
 
 ## リリース手順 (開発者向け)
 
+このプロジェクトは `gh bump` 拡張機能を使用してリリースを作成します。
+
+### 前提条件
 
 ```powershell
-gh bump
+# gh bump拡張機能のインストール
+gh extension install johnmanjiro13/gh-bump
+```
+
+### リリース作成手順
+
+1. **ビルドとパブリッシュ**
+   ```powershell
+   cd yClocky
+   dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false
+   ```
+
+2. **変更をコミット**
+   ```powershell
+   git add .
+   git commit -m "リリース準備"
+   git push
+   ```
+
+3. **リリース作成**
+   ```powershell
+   # パッチバージョン (1.0.0 -> 1.0.1)
+   gh bump --bump-type patch --asset-files "yClocky/bin/Release/net8.0-windows/win-x64/publish/yClocky.exe" -g -y
+
+   # マイナーバージョン (1.0.0 -> 1.1.0)
+   gh bump --bump-type minor --asset-files "yClocky/bin/Release/net8.0-windows/win-x64/publish/yClocky.exe" -g -y
+
+   # メジャーバージョン (1.0.0 -> 2.0.0)
+   gh bump --bump-type major --asset-files "yClocky/bin/Release/net8.0-windows/win-x64/publish/yClocky.exe" -g -y
+   ```
+
+### WinGetパッケージ更新
+
+リリース作成後、WinGetパッケージも更新する必要があります：
+
+```powershell
+# wingetcreateを使用してマニフェストを更新
+wingetcreate update ycookiey.yClocky --version <新しいバージョン> --urls <リリースURL> --submit
 ```
