@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Submit to Winget
-        uses: vedantmgoyal2009/winget-releaser@v2
+        uses: vedantmgoyal9/winget-releaser@main
         with:
           identifier: ycookiey.yClocky
           installers-regex: '\.exe$'
