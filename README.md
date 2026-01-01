@@ -56,47 +56,51 @@ dotnet run
 
 ## リリース手順 (開発者向け)
 
-このプロジェクトは `gh bump` 拡張機能を使用してリリースを作成します。
+このプロジェクトは `gh bump` でバージョン管理を行い、GitHub Actions で自動的にビルド・リリースを作成します。
 
 ### 前提条件
 
-```powershell
+```bash
 # gh bump拡張機能のインストール
 gh extension install johnmanjiro13/gh-bump
 ```
 
 ### リリース作成手順
 
-1. **ビルドとパブリッシュ**
-   ```powershell
-   cd yClocky
-   dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false
-   ```
-
-2. **変更をコミット**
-   ```powershell
+1. **変更をコミット**
+   ```bash
    git add .
-   git commit -m "リリース準備"
+   git commit -m "変更内容"
    git push
    ```
 
-3. **リリース作成**
-   ```powershell
+2. **gh bumpでタグを作成**
+   ```bash
    # パッチバージョン (1.0.0 -> 1.0.1)
-   gh bump --bump-type patch --asset-files "yClocky/bin/Release/net8.0-windows/win-x64/publish/yClocky.exe" -g -y
+   gh bump --bump-type patch -g -y
 
    # マイナーバージョン (1.0.0 -> 1.1.0)
-   gh bump --bump-type minor --asset-files "yClocky/bin/Release/net8.0-windows/win-x64/publish/yClocky.exe" -g -y
+   gh bump --bump-type minor -g -y
 
    # メジャーバージョン (1.0.0 -> 2.0.0)
-   gh bump --bump-type major --asset-files "yClocky/bin/Release/net8.0-windows/win-x64/publish/yClocky.exe" -g -y
+   gh bump --bump-type major -g -y
    ```
 
-### WinGetパッケージ更新
+これだけで、GitHub Actions が自動的に以下を実行します：
 
-リリース作成後、WinGetパッケージも更新する必要があります：
+- ✅ .NET 8 でビルド
+- ✅ リリース版の実行ファイルを作成
+- ✅ GitHub Release を作成
+- ✅ WinGet パッケージの更新 PR を作成
 
-```powershell
-# wingetcreateを使用してマニフェストを更新
-wingetcreate update ycookiey.yClocky --version <新しいバージョン> --urls <リリースURL> --submit
-```
+### ワークフローの詳細
+
+リリースプロセスは以下の2つのワークフローで構成されています：
+
+- **`.github/workflows/release.yml`**: タグプッシュ時にビルド・リリース作成
+- **`.github/workflows/winget.yml`**: リリース公開時に WinGet PR 作成
+
+### 備考
+
+- ローカルでのビルドは不要です
+- `WINGET_TOKEN` シークレットが設定されている必要があります
