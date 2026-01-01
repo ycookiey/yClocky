@@ -53,6 +53,7 @@ public partial class MainWindow : Window
             UpdateClock();
             UpdateClickThrough();
             UpdateGhostMode();
+            EnsureTopmost();
         }
         catch
         {
@@ -141,6 +142,15 @@ public partial class MainWindow : Window
                     this.Opacity = SettingsManager.Current.Opacity;
                 }
             }
+        }
+    }
+
+    private void EnsureTopmost()
+    {
+        // If Topmost is enabled in settings, force it to stay on top
+        if (SettingsManager.Current.Topmost && !this.Topmost)
+        {
+            this.Topmost = true;
         }
     }
 
