@@ -25,7 +25,26 @@ yClockyは、Windows用のミニマルでステルス性の高いデスクトッ
 *   Windows 10 / 11
 *   .NET 8 Runtime
 
-## インストール・ビルド
+## インストール
+
+### Scoop
+
+```powershell
+scoop bucket add yscoopy https://github.com/ycookiey/yscoopy
+scoop install yscoopy/yclocky
+```
+
+### WinGet
+
+```powershell
+winget install ycookiey.yClocky
+```
+
+### 手動インストール
+
+[Releases](https://github.com/ycookiey/yClocky/releases) ページから最新版の `yClocky.exe` をダウンロードして実行してください。
+
+## 開発者向けビルド
 
 このプロジェクトは .NET 8 (WPF) で開発されています。
 
