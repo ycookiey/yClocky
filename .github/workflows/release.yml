@@ -31,3 +31,4 @@ jobs:
         with:
           files: yClocky/bin/Release/net8.0-windows/win-x64/publish/yClocky.exe
           generate_release_notes: true
+          token: ${{ secrets.PAT_TOKEN }}
