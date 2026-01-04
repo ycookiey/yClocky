@@ -31,10 +31,47 @@ public partial class MainWindow : Window
         
         InitializeClock();
         ApplySettings();
-        
-        // Restore position
-        this.Left = SettingsManager.Current.Left;
-        this.Top = SettingsManager.Current.Top;
+
+        // Restore position with boundary check
+        RestoreWindowPosition();
+    }
+
+    private void RestoreWindowPosition()
+    {
+        double left = SettingsManager.Current.Left;
+        double top = SettingsManager.Current.Top;
+
+        // Get screen bounds
+        double screenWidth = SystemParameters.VirtualScreenWidth;
+        double screenHeight = SystemParameters.VirtualScreenHeight;
+        double screenLeft = SystemParameters.VirtualScreenLeft;
+        double screenTop = SystemParameters.VirtualScreenTop;
+
+        // Check if window position is within screen bounds
+        // Allow window to be partially off-screen, but ensure at least 50px is visible
+        const double minVisibleSize = 50;
+
+        bool isVisible = left + this.Width >= screenLeft + minVisibleSize &&
+                        left <= screenLeft + screenWidth - minVisibleSize &&
+                        top + this.Height >= screenTop + minVisibleSize &&
+                        top <= screenTop + screenHeight - minVisibleSize;
+
+        if (isVisible)
+        {
+            this.Left = left;
+            this.Top = top;
+        }
+        else
+        {
+            // Position is off-screen, use default position
+            this.Left = 100;
+            this.Top = 100;
+
+            // Update saved settings
+            SettingsManager.Current.Left = this.Left;
+            SettingsManager.Current.Top = this.Top;
+            SettingsManager.Save();
+        }
     }
 
     private void InitializeClock()
