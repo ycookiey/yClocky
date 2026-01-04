@@ -66,15 +66,22 @@ public static class SettingsManager
 
             var json = JsonSerializer.Serialize(Current, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFile, json);
-            
+
             SettingsChanged?.Invoke();
-            
+
             SetStartup(Current.RunOnStartup);
         }
         catch
         {
             // Handle save errors (log or ignore)
         }
+    }
+
+    public static void ResetPosition()
+    {
+        Current.Left = 100;
+        Current.Top = 100;
+        Save();
     }
 
     private static void SetStartup(bool enable)

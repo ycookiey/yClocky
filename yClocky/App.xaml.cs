@@ -16,13 +16,23 @@ public partial class App : Application
     {
         // Global exception handling
         AppDomain.CurrentDomain.UnhandledException += (s, args) => LogException(args.ExceptionObject as Exception);
-        DispatcherUnhandledException += (s, args) => 
+        DispatcherUnhandledException += (s, args) =>
         {
             LogException(args.Exception);
-            args.Handled = true; 
+            args.Handled = true;
         };
 
         SettingsManager.Load();
+
+        // コマンドライン引数をチェック
+        if (e.Args.Length > 0)
+        {
+            if (e.Args.Contains("--reset-position") || e.Args.Contains("-rp"))
+            {
+                SettingsManager.ResetPosition();
+                // 位置をリセット後、アプリは継続実行される
+            }
+        }
 
         if (!SettingsManager.Current.AllowMultipleInstances)
         {
