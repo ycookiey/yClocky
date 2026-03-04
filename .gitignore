@@ -7,6 +7,7 @@ obj/
 
 # Temporary files
 winget-pkgs-temp/
+manifests/
 implementation_plan.md
 winget_pr_update_summary.md
 
