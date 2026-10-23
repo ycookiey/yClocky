@@ -5,16 +5,12 @@ using System.IO;
 
 namespace yClocky;
 
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
 public partial class App : Application
 {
     private static Mutex? _mutex;
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        // Global exception handling
         AppDomain.CurrentDomain.UnhandledException += (s, args) => LogException(args.ExceptionObject as Exception);
         DispatcherUnhandledException += (s, args) =>
         {
@@ -24,13 +20,12 @@ public partial class App : Application
 
         SettingsManager.Load();
 
-        // コマンドライン引数をチェック
         if (e.Args.Length > 0)
         {
             if (e.Args.Contains("--reset-position") || e.Args.Contains("-rp"))
             {
                 SettingsManager.ResetPosition();
-                // 位置をリセット後、アプリは継続実行される
+                // Startup continues after the reset.
             }
         }
 
@@ -42,7 +37,6 @@ public partial class App : Application
 
             if (!createdNew)
             {
-                // App is already running!
                 Shutdown();
                 return;
             }
@@ -60,7 +54,6 @@ public partial class App : Application
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
                 "yClocky", "crash.log");
             
-            // Ensure directory exists
             var dir = Path.GetDirectoryName(logPath);
             if (dir != null && !Directory.Exists(dir))
             {

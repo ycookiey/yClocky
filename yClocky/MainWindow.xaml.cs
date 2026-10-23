@@ -14,9 +14,6 @@ using System.Windows.Threading;
 
 namespace yClocky;
 
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
 public partial class MainWindow : Window
 {
     private DispatcherTimer _timer;
@@ -32,7 +29,6 @@ public partial class MainWindow : Window
         InitializeClock();
         ApplySettings();
 
-        // Restore position with boundary check
         RestoreWindowPosition();
     }
 
@@ -41,13 +37,11 @@ public partial class MainWindow : Window
         double left = SettingsManager.Current.Left;
         double top = SettingsManager.Current.Top;
 
-        // Get screen bounds
         double screenWidth = SystemParameters.VirtualScreenWidth;
         double screenHeight = SystemParameters.VirtualScreenHeight;
         double screenLeft = SystemParameters.VirtualScreenLeft;
         double screenTop = SystemParameters.VirtualScreenTop;
 
-        // Check if window position is within screen bounds
         // Allow window to be partially off-screen, but ensure at least 50px is visible
         const double minVisibleSize = 50;
 
@@ -63,11 +57,9 @@ public partial class MainWindow : Window
         }
         else
         {
-            // Position is off-screen, use default position
             this.Left = 100;
             this.Top = 100;
 
-            // Update saved settings
             SettingsManager.Current.Left = this.Left;
             SettingsManager.Current.Top = this.Top;
             SettingsManager.Save();
@@ -110,14 +102,14 @@ public partial class MainWindow : Window
         var helper = new WindowInteropHelper(this);
         int exStyle = (int)GetWindowLong(helper.Handle, GWL_EXSTYLE);
 
+        // WS_EX_TRANSPARENT passes clicks to the windows behind. It is cleared
+        // only while Ctrl is held, so that a plain click never hits the clock.
         if (Keyboard.Modifiers == ModifierKeys.Control)
         {
-            // Ctrl押下中はクリックを受け付ける
             SetWindowLong(helper.Handle, GWL_EXSTYLE, exStyle & ~WS_EX_TRANSPARENT);
         }
         else
         {
-            // 通常時はクリックを貫通
             SetWindowLong(helper.Handle, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT);
         }
     }
@@ -136,7 +128,6 @@ public partial class MainWindow : Window
         POINT p;
         if (GetCursorPos(out p))
         {
-            // Check if cursor is inside window bounds
             bool isInside = p.X >= this.Left &&
                            p.X <= this.Left + this.Width &&
                            p.Y >= this.Top &&
@@ -144,12 +135,10 @@ public partial class MainWindow : Window
 
             if (isInside)
             {
-                // Inside window: fully transparent
                 this.Opacity = 0;
             }
             else
             {
-                // Outside window: calculate distance from window edge
                 double dx = 0;
                 double dy = 0;
 
@@ -165,12 +154,10 @@ public partial class MainWindow : Window
 
                 double distance = Math.Sqrt(dx * dx + dy * dy);
 
-                // Fade distance threshold
                 double fadeDistance = 100;
 
                 if (distance < fadeDistance)
                 {
-                    // Gradual fade based on distance from window edge
                     double factor = distance / fadeDistance;
                     this.Opacity = SettingsManager.Current.Opacity * factor;
                 }
@@ -184,7 +171,6 @@ public partial class MainWindow : Window
 
     private void EnsureTopmost()
     {
-        // If Topmost is enabled in settings, force it to stay on top
         if (SettingsManager.Current.Topmost && !this.Topmost)
         {
             this.Topmost = true;
@@ -197,7 +183,6 @@ public partial class MainWindow : Window
 
         try
         {
-            // Appearance
             var converter = new BrushConverter();
             var textBrush = (Brush?)converter.ConvertFromString(settings.TextColor) ?? Brushes.White;
             var bgBrush = (Brush?)converter.ConvertFromString(settings.BackgroundColor) ?? Brushes.Transparent;
@@ -221,10 +206,8 @@ public partial class MainWindow : Window
                 DateText.FontFamily = font;
             }
 
-            // Behavior
             DateText.Visibility = settings.ShowDate ? Visibility.Visible : Visibility.Collapsed;
             
-            // Capture Protection
             var helper = new WindowInteropHelper(this);
             uint affinity = settings.ExcludeFromCapture ? WDA_EXCLUDEFROMCAPTURE : WDA_NONE;
             SetWindowDisplayAffinity(helper.Handle, affinity);
@@ -248,7 +231,6 @@ public partial class MainWindow : Window
                 {
                     this.DragMove();
                     
-                    // Save position after move
                     SettingsManager.Current.Left = this.Left;
                     SettingsManager.Current.Top = this.Top;
                     SettingsManager.Save();
@@ -284,7 +266,9 @@ public partial class MainWindow : Window
     {
         base.OnSourceInitialized(e);
         SetWindowStyle();
-        ApplySettings(); // Apply initial settings (including affinity)
+        // Applied again because SetWindowDisplayAffinity needs the window handle,
+        // which does not exist yet when the constructor runs.
+        ApplySettings();
     }
 
     protected override void OnClosed(EventArgs e)

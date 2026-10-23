@@ -24,13 +24,11 @@ public partial class SettingsWindow : Window
     {
         var settings = SettingsManager.Current;
 
-        // Load Fonts
         foreach (var font in Fonts.SystemFontFamilies.OrderBy(f => f.Source))
         {
             FontCombo.Items.Add(font);
         }
 
-        // Select the current font
         var currentFont = Fonts.SystemFontFamilies.FirstOrDefault(f => f.Source == settings.FontFamily);
         if (currentFont != null)
         {
@@ -68,10 +66,6 @@ public partial class SettingsWindow : Window
         settings.AllowMultipleInstances = MultiInstanceCheck.IsChecked ?? false;
 
         SettingsManager.Save();
-        
-        // Notify MainWindow to update (simple static event or direct reference could work, 
-        // but for now let's assume MainWindow polls or we add an event to SettingsManager)
-        // For simplicity, let's add an event to SettingsManager.
     }
 
     private void FontCombo_SelectionChanged(object sender, SelectionChangedEventArgs e) => SaveSettings();
@@ -92,24 +86,20 @@ public partial class SettingsWindow : Window
 
     private void FontCombo_DropDownOpened(object sender, EventArgs e)
     {
-        // Prevent multiple preview windows
         if (_previewWindow != null)
         {
             return;
         }
 
-        // Save the current font
         _originalFont = FontCombo.SelectedItem as FontFamily;
 
         if (_originalFont != null)
         {
-            // Create and show preview window
             _previewWindow = new FontPreviewWindow(_originalFont);
 
             // Set owner to maintain proper Z-order
             _previewWindow.Owner = this;
 
-            // Position the preview window to the right of the settings window
             _previewWindow.Left = this.Left + this.Width + 10;
             _previewWindow.Top = this.Top;
             _previewWindow.Show();
@@ -118,7 +108,6 @@ public partial class SettingsWindow : Window
 
     private void FontCombo_DropDownClosed(object sender, EventArgs e)
     {
-        // Close preview window when dropdown closes
         if (_previewWindow != null)
         {
             _previewWindow.Close();
@@ -151,7 +140,6 @@ public partial class SettingsWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
-        // Close preview window when settings window closes
         if (_previewWindow != null)
         {
             _previewWindow.Close();
