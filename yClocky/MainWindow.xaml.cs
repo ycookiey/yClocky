@@ -16,8 +16,13 @@ namespace yClocky;
 
 public partial class MainWindow : Window
 {
-    private DispatcherTimer _timer;
+    // The clock text changes once a second, so it has its own timer set to the
+    // next second. The 100 ms timer only checks Ctrl and moves Ghost Mode, and
+    // touches the window only when something changed.
+    private readonly DispatcherTimer _clockTimer = new();
+    private readonly DispatcherTimer _timer = new();
     private SettingsWindow? _settingsWindow;
+    private bool? _clickThrough;
 
     public MainWindow()
     {
@@ -68,21 +73,43 @@ public partial class MainWindow : Window
 
     private void InitializeClock()
     {
-        _timer = new DispatcherTimer();
+        _clockTimer.Tick += ClockTimer_Tick;
+        UpdateClock();
+        ScheduleNextSecond();
+        _clockTimer.Start();
+
         _timer.Interval = TimeSpan.FromSeconds(0.1);
         _timer.Tick += Timer_Tick;
         _timer.Start();
-        UpdateClock();
+    }
+
+    private void ClockTimer_Tick(object? sender, EventArgs e)
+    {
+        try
+        {
+            UpdateClock();
+            EnsureTopmost();
+        }
+        catch
+        {
+            // Prevent crash from timer tick
+        }
+        ScheduleNextSecond();
+    }
+
+    /// <summary>Sets the clock timer to fire just after the next second starts.</summary>
+    private void ScheduleNextSecond()
+    {
+        var now = DateTime.Now;
+        _clockTimer.Interval = TimeSpan.FromMilliseconds(1000 - now.Millisecond + 10);
     }
 
     private void Timer_Tick(object? sender, EventArgs e)
     {
         try
         {
-            UpdateClock();
             UpdateClickThrough();
             UpdateGhostMode();
-            EnsureTopmost();
         }
         catch
         {
@@ -99,19 +126,16 @@ public partial class MainWindow : Window
 
     private void UpdateClickThrough()
     {
-        var helper = new WindowInteropHelper(this);
-        int exStyle = (int)GetWindowLong(helper.Handle, GWL_EXSTYLE);
-
         // WS_EX_TRANSPARENT passes clicks to the windows behind. It is cleared
         // only while Ctrl is held, so that a plain click never hits the clock.
-        if (Keyboard.Modifiers == ModifierKeys.Control)
-        {
-            SetWindowLong(helper.Handle, GWL_EXSTYLE, exStyle & ~WS_EX_TRANSPARENT);
-        }
-        else
-        {
-            SetWindowLong(helper.Handle, GWL_EXSTYLE, exStyle | WS_EX_TRANSPARENT);
-        }
+        bool clickThrough = Keyboard.Modifiers != ModifierKeys.Control;
+        if (_clickThrough == clickThrough) return;
+        _clickThrough = clickThrough;
+
+        var helper = new WindowInteropHelper(this);
+        int exStyle = (int)GetWindowLong(helper.Handle, GWL_EXSTYLE);
+        SetWindowLong(helper.Handle, GWL_EXSTYLE,
+            clickThrough ? exStyle | WS_EX_TRANSPARENT : exStyle & ~WS_EX_TRANSPARENT);
     }
 
     private void UpdateGhostMode()
@@ -275,11 +299,10 @@ public partial class MainWindow : Window
     {
         base.OnClosed(e);
         
-        if (_timer != null)
-        {
-            _timer.Stop();
-            _timer.Tick -= Timer_Tick;
-        }
+        _timer.Stop();
+        _timer.Tick -= Timer_Tick;
+        _clockTimer.Stop();
+        _clockTimer.Tick -= ClockTimer_Tick;
         
         SettingsManager.SettingsChanged -= ApplySettings;
         Application.Current.Shutdown();
