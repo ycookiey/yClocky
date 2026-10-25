@@ -16,10 +16,8 @@ public partial class FontPreviewWindow : Window
         InitializeComponent();
         _currentFont = currentFont;
 
-        // Apply current settings
         ApplySettings();
 
-        // Start timer for real-time clock
         _timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(1)
@@ -27,7 +25,6 @@ public partial class FontPreviewWindow : Window
         _timer.Tick += Timer_Tick;
         _timer.Start();
 
-        // Update immediately
         UpdateTime();
     }
 
@@ -35,17 +32,14 @@ public partial class FontPreviewWindow : Window
     {
         var settings = SettingsManager.Current;
 
-        // Apply current font to current preview
         CurrentTimeText.FontFamily = _currentFont;
         CurrentDateText.FontFamily = _currentFont;
         CurrentFontNameRun.Text = _currentFont.Source;
 
-        // Initially same font for preview
         PreviewTimeText.FontFamily = _currentFont;
         PreviewDateText.FontFamily = _currentFont;
         PreviewFontNameRun.Text = _currentFont.Source;
 
-        // Apply colors and opacity to both sections
         try
         {
             var textBrush = (SolidColorBrush)new BrushConverter().ConvertFromString(settings.TextColor);

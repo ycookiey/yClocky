@@ -17,7 +17,6 @@ public class AppSettings
     public bool GhostMode { get; set; } = false;
     public bool ExcludeFromCapture { get; set; } = false;
     
-    // Window Position
     public double Left { get; set; } = 100;
     public double Top { get; set; } = 100;
 }
@@ -73,7 +72,7 @@ public static class SettingsManager
         }
         catch
         {
-            // Handle save errors (log or ignore)
+            // A failed save is ignored so that the clock keeps running.
         }
     }
 
