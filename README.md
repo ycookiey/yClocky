@@ -1,6 +1,6 @@
 # yClocky
 
-[日本語](README.ja.md)
+[日本語版 README](README.ja.md)
 
 A minimal desktop clock for Windows. It shows the time as plain text with no window frame, and stays out of your way: it has no taskbar button, no Alt+Tab entry and no notification area icon, and clicks pass through it to the windows behind.
 
