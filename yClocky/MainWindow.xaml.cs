@@ -23,6 +23,8 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _timer = new();
     private SettingsWindow? _settingsWindow;
     private bool? _clickThrough;
+    private WinEventDelegate? _foregroundChanged;
+    private IntPtr _foregroundHook;
 
     public MainWindow()
     {
@@ -88,7 +90,6 @@ public partial class MainWindow : Window
         try
         {
             UpdateClock();
-            EnsureTopmost();
         }
         catch
         {
@@ -193,11 +194,30 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnForegroundChanged(IntPtr hook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint thread, uint time)
+    {
+        try
+        {
+            if (SettingsManager.Current.Topmost) EnsureTopmost();
+        }
+        catch
+        {
+            // An exception must not escape into the native caller
+        }
+    }
+
+    // WS_EX_TOPMOST and the Topmost property can stay set while the window falls
+    // below normal windows, so this walks the actual Z order.
     private void EnsureTopmost()
     {
-        if (SettingsManager.Current.Topmost && !this.Topmost)
+        var handle = new WindowInteropHelper(this).Handle;
+        for (var above = GetWindow(handle, GW_HWNDPREV); above != IntPtr.Zero; above = GetWindow(above, GW_HWNDPREV))
         {
-            this.Topmost = true;
+            if ((GetWindowLongPtr(above, GWL_EXSTYLE).ToInt64() & WS_EX_TOPMOST) == 0)
+            {
+                SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                return;
+            }
         }
     }
 
@@ -293,12 +313,22 @@ public partial class MainWindow : Window
         // Applied again because SetWindowDisplayAffinity needs the window handle,
         // which does not exist yet when the constructor runs.
         ApplySettings();
+
+        _foregroundChanged = OnForegroundChanged;
+        _foregroundHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, IntPtr.Zero,
+            _foregroundChanged, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
     }
 
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
-        
+
+        if (_foregroundHook != IntPtr.Zero)
+        {
+            UnhookWinEvent(_foregroundHook);
+            _foregroundHook = IntPtr.Zero;
+        }
+
         _timer.Stop();
         _timer.Tick -= Timer_Tick;
         _clockTimer.Stop();
@@ -318,6 +348,15 @@ public partial class MainWindow : Window
     private const int GWL_EXSTYLE = -20;
     private const int WS_EX_TOOLWINDOW = 0x00000080;
     private const int WS_EX_TRANSPARENT = 0x00000020;
+    private const int WS_EX_TOPMOST = 0x00000008;
+    private const uint GW_HWNDPREV = 3;
+    private const uint SWP_NOSIZE = 0x0001;
+    private const uint SWP_NOMOVE = 0x0002;
+    private const uint SWP_NOACTIVATE = 0x0010;
+    private static readonly IntPtr HWND_TOPMOST = new(-1);
+    private const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+    private const uint WINEVENT_OUTOFCONTEXT = 0x0000;
+    private const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
     private const uint WDA_NONE = 0x00000000;
     private const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 
@@ -327,6 +366,23 @@ public partial class MainWindow : Window
         public int X;
         public int Y;
     }
+
+    private delegate void WinEventDelegate(IntPtr hook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint thread, uint time);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmod, WinEventDelegate callback, uint process, uint thread, uint flags);
+
+    [DllImport("user32.dll")]
+    private static extern bool UnhookWinEvent(IntPtr hook);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetWindow(IntPtr hWnd, uint command);
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+    private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr insertAfter, int x, int y, int cx, int cy, uint flags);
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetWindowLong(IntPtr hWnd, int nIndex);
